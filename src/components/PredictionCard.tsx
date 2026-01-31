@@ -53,7 +53,6 @@ export default function PredictionCard() {
         }
     }
 
-    if (totalBudget === 0) return null;
 
     return (
         <Card padding="lg" radius="lg" withBorder style={{ borderColor: isDanger ? 'red' : undefined }}>
@@ -63,43 +62,51 @@ export default function PredictionCard() {
                         <Text size="xs" c="dimmed" tt="uppercase" fw={700}>
                             AI 未来予測 (AI Future Prediction)
                         </Text>
-                        <Text size="xl" fw={800} c={isDanger ? "red" : "teal"}>
-                            {isDanger ? "赤字予報" : "黒字予報"}
+                        <Text size="xl" fw={800} c={totalBudget === 0 ? "gray" : (isDanger ? "red" : "teal")}>
+                            {totalBudget === 0 ? "データ待ち" : (isDanger ? "赤字予報" : "黒字予報")}
                         </Text>
                     </div>
                     <ThemeIcon
                         variant="light"
-                        color={isDanger ? "red" : "teal"}
+                        color={totalBudget === 0 ? "gray" : (isDanger ? "red" : "teal")}
                         size="lg"
                         radius="xl"
                     >
-                        {isDanger ? <IconAlertTriangle size={20} /> : <IconTrendingUp size={20} />}
+                        {totalBudget === 0 ? <IconCheck size={20} /> : (isDanger ? <IconAlertTriangle size={20} /> : <IconTrendingUp size={20} />)}
                     </ThemeIcon>
                 </Group>
 
-                <Group align="flex-end" gap={4}>
-                    <Text size="sm" c="dimmed">月末予想残高:</Text>
-                    <Text fw={700} c={isDanger ? "red" : "teal"}>
-                        {projectedBalance >= 0 ? "+" : ""}{Math.round(projectedBalance).toLocaleString()}円
+                {totalBudget === 0 ? (
+                    <Text size="sm" ta="center" py="xl" c="dimmed">
+                        予算が設定されていません。<br />収支を入力してAI予測を開始しましょう！
                     </Text>
-                </Group>
+                ) : (
+                    <>
+                        <Group align="flex-end" gap={4}>
+                            <Text size="sm" c="dimmed">月末予想残高:</Text>
+                            <Text fw={700} c={isDanger ? "red" : "teal"}>
+                                {projectedBalance >= 0 ? "+" : ""}{Math.round(projectedBalance).toLocaleString()}円
+                            </Text>
+                        </Group>
 
-                {isDanger && daysUntilBroke !== null && daysUntilBroke > 0 && (
-                    <Alert variant="light" color="red" title="警告" icon={<IconAlertTriangle size={16} />}>
-                        このペースだと、あと<span style={{ fontWeight: 800, fontSize: '1.1em' }}> {daysUntilBroke}日 </span>で予算がつきます。
-                    </Alert>
-                )}
+                        {isDanger && daysUntilBroke !== null && daysUntilBroke > 0 && (
+                            <Alert variant="light" color="red" title="警告" icon={<IconAlertTriangle size={16} />}>
+                                このペースだと、あと<span style={{ fontWeight: 800, fontSize: '1.1em' }}> {daysUntilBroke}日 </span>で予算がつきます.
+                            </Alert>
+                        )}
 
-                {isDanger && daysUntilBroke === 0 && (
-                    <Alert variant="light" color="red" title="警告" icon={<IconAlertTriangle size={16} />}>
-                        既に予算を超過しています！支出を直ちに停止してください。
-                    </Alert>
-                )}
+                        {isDanger && daysUntilBroke === 0 && (
+                            <Alert variant="light" color="red" title="警告" icon={<IconAlertTriangle size={16} />}>
+                                既に予算を超過しています！支出를 직시 정지해 주세요.
+                            </Alert>
+                        )}
 
-                {!isDanger && (
-                    <Text size="xs" c="dimmed">
-                        現在のペースなら、月末には約 {Math.round(totalBudget - projectedTotal).toLocaleString()}円 余る見込みです。
-                    </Text>
+                        {!isDanger && (
+                            <Text size="xs" c="dimmed">
+                                현재 페이스라면, 월말에는 약 {Math.round(totalBudget - projectedTotal).toLocaleString()}円 남을 전망입니다.
+                            </Text>
+                        )}
+                    </>
                 )}
             </Stack>
         </Card>

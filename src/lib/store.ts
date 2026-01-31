@@ -108,7 +108,7 @@ export const useStore = create<AppState>()(
             budgets: [],
             events: [],
             isPro: false,
-            viewMode: "all",
+            viewMode: "shared",
 
             addExpense: (data) => {
                 const { currentUser, budgets, setBudget } = get();
