@@ -11,10 +11,9 @@ export default function BudgetCard() {
 
     const currentMonth = dayjs().format("YYYY-MM");
 
-    // Find budget for current family and month
-    // For MVP, assuming one global budget per family per month
+    // Find budget for current family, month, and scope (viewMode)
     const budgetData = budgets.find(
-        b => b.familyId === currentUser?.familyId && b.month === currentMonth
+        b => b.familyId === currentUser?.familyId && b.month === currentMonth && b.scope === viewMode
     );
 
     const totalBudget = budgetData?.totalBudget || 0;

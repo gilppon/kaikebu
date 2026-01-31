@@ -1,0 +1,77 @@
+{
+    "tech_stack": [
+        "TypeScript",
+        "Next.js (App Router)",
+        "Mantine UI (v7)",
+        "Zustand (State Management)",
+        "Day.js",
+        "Recharts",
+        "Framer Motion",
+        "Tabler Icons"
+    ],
+    "features": [
+        {
+            "name": "Expense Management",
+            "description": "CRUD operations for financial transactions including expenses and income.",
+            "files": [
+                "src/lib/store.ts",
+                "src/components/ExpenseInputModal.tsx",
+                "src/app/transactions/page.tsx",
+                "src/components/RecentTransactions.tsx"
+            ]
+        },
+        {
+            "name": "Budgeting",
+            "description": "Set and track monthly budgets.",
+            "files": [
+                "src/lib/store.ts",
+                "src/components/BudgetCard.tsx"
+            ]
+        },
+        {
+            "name": "Category Management",
+            "description": "Create and manage custom categories with icons and colors.",
+            "files": [
+                "src/lib/store.ts",
+                "src/app/settings/page.tsx"
+            ]
+        },
+        {
+            "name": "Excel Export/Import",
+            "description": "Export expenses to CSV and import from CSV for bulk data management.",
+            "files": [
+                "src/app/settings/page.tsx"
+            ]
+        },
+        {
+            "name": "Personal vs Shared Scope",
+            "description": "Distinguish between personal pocket money and shared living expenses with filtering.",
+            "files": [
+                "src/lib/store.ts",
+                "src/app/page.tsx",
+                "src/components/ExpenseInputModal.tsx"
+            ]
+        },
+        {
+            "name": "Category Chart",
+            "description": "Visualize expense distribution by category using a Donut/Pie chart.",
+            "files": [
+                "src/components/CategoryChart.tsx"
+            ]
+        },
+        {
+            "name": "Calendar View",
+            "description": "Dashboard calendar showing daily financial activity.",
+            "files": [
+                "src/components/CalendarCard.tsx"
+            ]
+        },
+        {
+            "name": "AI Future Prediction",
+            "description": "Predict end-of-month balance based on current spending trends.",
+            "files": [
+                "src/components/PredictionCard.tsx"
+            ]
+        }
+    ]
+}

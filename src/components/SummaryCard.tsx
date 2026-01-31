@@ -35,9 +35,9 @@ export default function SummaryCard() {
             .reduce((acc, curr) => acc + curr.amount, 0);
     }, [expenses, currentMonth, viewMode, currentUser]);
 
-    // Budget Logic
+    // Budget Logic - Filter by scope (viewMode)
     const budgetData = budgets.find(
-        b => b.familyId === currentUser?.familyId && b.month === currentMonth
+        b => b.familyId === currentUser?.familyId && b.month === currentMonth && b.scope === viewMode
     );
     const totalBudget = budgetData?.totalBudget || 0;
     const percentage = totalBudget > 0 ? (totalSpent / totalBudget) * 100 : 0;

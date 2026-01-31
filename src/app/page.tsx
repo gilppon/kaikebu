@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Container, Grid, Title, Text, Button, Group, Box, Paper, Flex, Stack, SegmentedControl } from "@mantine/core";
+import { Container, Grid, Title, Text, Button, Group, Box, Paper, Flex, Stack, SegmentedControl, rem } from "@mantine/core";
 import { useStore } from "@/lib/store";
 import { IconPlus, IconWallet, IconChartPie, IconSettings } from "@tabler/icons-react";
 import ExpenseInputModal from "@/components/ExpenseInputModal";
@@ -48,61 +48,58 @@ export default function Dashboard() {
 
   return (
     <Container size="md" py="xl">
-      <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-        <Group justify="space-between" mb={40}>
+      <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
+        <Group justify="space-between" mb={30}>
           <div>
-            <Text c="dimmed" tt="uppercase" fw={700} style={{ letterSpacing: '1px', fontSize: 'var(--mantine-font-size-sm)' }}>
-              概要 (Overview)
+            <Text c="blue.5" tt="uppercase" fw={800} style={{ letterSpacing: '2px', fontSize: rem(12) }}>
+              家計簿ダッシュボード (KAIKEBU)
             </Text>
-            <Title order={1} style={{ fontSize: '3rem', fontWeight: 800, letterSpacing: '-0.02em' }}>
-              こんにちは、<br />
-              <span style={{ color: '#0071e3' }}>{currentUser?.name || "ゲスト"}</span>さん
+            <Title order={1} style={{ fontSize: rem(42), fontWeight: 900, lineHeight: 1.1, color: '#2b2d42' }}>
+              おかえりなさい、<br />
+              <span style={{
+                background: 'linear-gradient(120deg, #339af0, #228be6)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent'
+              }}>{currentUser?.name || "ゲスト"}</span>さん ✨
             </Title>
           </div>
-          <Group>
+          <Stack align="flex-end" gap="xs">
+            <Group gap="xs">
+              <Button
+                variant="white"
+                color="gray.7"
+                component={Link}
+                href="/settings"
+                leftSection={<IconSettings size={18} />}
+                radius="xl"
+                size="sm"
+                style={{ backdropFilter: 'blur(10px)', backgroundColor: 'rgba(255,255,255,0.5)' }}
+              >
+                Settings
+              </Button>
+              <Button
+                leftSection={<IconPlus size={18} />}
+                onClick={() => setOpened(true)}
+                size="sm"
+                radius="xl"
+                color="blue.6"
+                style={{ boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+              >
+                収支を追加
+              </Button>
+            </Group>
             <SegmentedControl
-              value={viewMode}
-              onChange={(value) => toggleViewMode(value as "all" | "personal" | "shared")}
+              value={viewMode === 'all' ? 'shared' : viewMode}
+              onChange={(value) => toggleViewMode(value as "personal" | "shared")}
               data={[
-                { label: '全員', value: 'all' },
                 { label: '個人', value: 'personal' },
                 { label: '共同', value: 'shared' },
               ]}
               radius="xl"
-              size="sm"
-              mb={{ base: 'sm', sm: 0 }}
+              size="xs"
+              bg="rgba(255,255,255,0.4)"
             />
-            <Button
-              variant="white"
-              color="dark"
-              component={Link}
-              href="/settings"
-              leftSection={<IconSettings size={20} />}
-              radius="xl"
-              size="md"
-              style={{ boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
-            >
-              設定
-            </Button>
-            <Button
-              variant="filled"
-              color="blue"
-              radius="xl"
-              size="md"
-              onClick={() => alert("会員登録機能は準備中です。\n(Registration feature coming soon)")}
-            >
-              新規登録
-            </Button>
-            <Button
-              leftSection={<IconPlus size={20} />}
-              onClick={() => setOpened(true)}
-              size="md"
-              radius="xl"
-              color="dark"
-            >
-              支出を追加
-            </Button>
-          </Group>
+          </Stack>
         </Group>
       </motion.div>
 

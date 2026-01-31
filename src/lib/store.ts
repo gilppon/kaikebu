@@ -38,6 +38,7 @@ export interface Expense {
 export interface Budget {
     familyId: string;
     month: string; // YYYY-MM
+    scope: "personal" | "shared"; // NEW: Budget scope
     totalBudget: number;
     categoryBudgets: Record<string, number>; // categoryId -> amount
 }
@@ -110,7 +111,7 @@ export const useStore = create<AppState>()(
             viewMode: "all",
 
             addExpense: (data) => {
-                const { currentUser } = get();
+                const { currentUser, budgets, setBudget } = get();
                 if (!currentUser) return;
                 const newExpense: Expense = {
                     id: uuidv4(),
@@ -118,6 +119,25 @@ export const useStore = create<AppState>()(
                     ...data,
                 };
                 set((state) => ({ expenses: [newExpense, ...state.expenses] }));
+
+                // Auto-set budget when income is added
+                if (data.type === "income") {
+                    const month = new Date(data.date).toISOString().slice(0, 7); // YYYY-MM
+                    const incomeScope = data.scope; // Use the same scope as the income
+                    const existingBudget = budgets.find(
+                        b => b.familyId === currentUser.familyId && b.month === month && b.scope === incomeScope
+                    );
+                    const currentBudgetAmount = existingBudget?.totalBudget || 0;
+
+                    // Add income to the existing budget (or create new) for this scope
+                    setBudget({
+                        familyId: currentUser.familyId,
+                        month,
+                        scope: incomeScope,
+                        totalBudget: currentBudgetAmount + data.amount,
+                        categoryBudgets: existingBudget?.categoryBudgets || {},
+                    });
+                }
             },
 
             updateExpense: (id, updates) => {
@@ -149,7 +169,7 @@ export const useStore = create<AppState>()(
             setBudget: (newBudget) => {
                 set((state) => {
                     const existingIndex = state.budgets.findIndex(
-                        (b) => b.familyId === newBudget.familyId && b.month === newBudget.month
+                        (b) => b.familyId === newBudget.familyId && b.month === newBudget.month && b.scope === newBudget.scope
                     );
                     if (existingIndex >= 0) {
                         const updated = [...state.budgets];

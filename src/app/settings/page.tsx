@@ -5,7 +5,7 @@ import { useForm } from "@mantine/form";
 import { useStore, Category, Expense } from "@/lib/store";
 import dayjs from "dayjs";
 import { useState, useRef } from "react";
-import { IconCrown, IconUser, IconUserPlus, IconPlus, IconTrash, IconDownload, IconUpload } from "@tabler/icons-react";
+import { IconCrown, IconUser, IconUserPlus, IconPlus, IconTrash, IconDownload, IconUpload, IconArrowLeft } from "@tabler/icons-react";
 import { useRouter } from "next/navigation";
 import { useDisclosure } from "@mantine/hooks";
 import UpgradeModal from "@/components/UpgradeModal";
@@ -19,6 +19,7 @@ export default function SettingsPage() {
     const router = useRouter();
 
     const [budgetAmount, setBudgetAmount] = useState<number | string>(100000);
+    const [budgetScope, setBudgetScope] = useState<"personal" | "shared">("shared");
 
     const [opened, { open, close }] = useDisclosure(false);
     const [catModalOpened, { open: openCatModal, close: closeCatModal }] = useDisclosure(false);
@@ -88,22 +89,43 @@ export default function SettingsPage() {
         setBudget({
             familyId: currentUser.familyId,
             month: currentMonth,
+            scope: budgetScope,
             totalBudget: Number(budgetAmount),
             categoryBudgets: {},
         });
-        router.push("/");
+        alert(`${budgetScope === 'personal' ? '個人' : '共同'}予算を保存しました！`);
     };
 
     return (
         <Container size="sm" py="xl">
             <UpgradeModal opened={opened} onClose={close} />
-            <Title order={2} mb="xl">設定</Title>
+            <Group justify="space-between" mb="xl">
+                <Title order={2}>設定</Title>
+                <Button
+                    variant="light"
+                    onClick={() => router.push("/")}
+                    leftSection={<IconArrowLeft size={18} />}
+                >
+                    戻る
+                </Button>
+            </Group>
 
             <Stack gap="xl">
                 {/* Budget Settings */}
                 <Paper p="lg" radius="lg" withBorder>
                     {/* ... (existing budget settings) ... */}
                     <Title order={4} mb="md" c="#1d1d1f">月間予算 ({dayjs().format("M月")})</Title>
+                    <SegmentedControl
+                        value={budgetScope}
+                        onChange={(val) => setBudgetScope(val as "personal" | "shared")}
+                        data={[
+                            { label: '個人 (Personal)', value: 'personal' },
+                            { label: '共同 (Shared)', value: 'shared' },
+                        ]}
+                        fullWidth
+                        mb="md"
+                        color={budgetScope === 'personal' ? 'violet' : 'cyan'}
+                    />
                     <Group align="flex-end">
                         <NumberInput
                             label={<Text c="#1d1d1f" fw={500}>予算総額</Text>}

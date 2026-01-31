@@ -27,9 +27,9 @@ export default function PredictionCard() {
             .reduce((acc, curr) => acc + curr.amount, 0);
     }, [expenses, currentMonth, viewMode, currentUser]);
 
-    // Get Budget
+    // Get Budget - Filter by scope (viewMode)
     const budgetData = budgets.find(
-        b => b.familyId === currentUser?.familyId && b.month === currentMonth
+        b => b.familyId === currentUser?.familyId && b.month === currentMonth && b.scope === viewMode
     );
     const totalBudget = budgetData?.totalBudget || 0;
 

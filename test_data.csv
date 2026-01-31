@@ -1,0 +1,6 @@
+date,amount,categoryId,memo,type,scope
+2026-01-31,1500,c1,Lunch with team,expense,shared
+2026-01-31,500,c2,Personal Snack,expense,personal
+2026-01-30,3000,c3,Groceries,expense,shared
+2026-01-29,1000,c4,Subscription,expense,personal
+2026-01-31,200000,c1,Monthly Salary,income,shared
