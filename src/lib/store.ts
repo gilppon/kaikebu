@@ -1,0 +1,183 @@
+import { create } from "zustand";
+import { persist, createJSONStorage } from "zustand/middleware";
+import { v4 as uuidv4 } from "uuid";
+import { NaggingStyle } from "./nagging";
+
+// --- Types ---
+export type UserRole = "owner" | "member";
+
+export interface User {
+    id: string;
+    name: string;
+    email: string;
+    familyId: string;
+    role: UserRole;
+    naggingStyle: NaggingStyle; // New field
+}
+
+export interface Category {
+    id: string;
+    name: string;
+    icon: string;
+    color: string;
+    type: "expense" | "income"; // Added type
+}
+
+export interface Expense {
+    id: string;
+    userId: string;
+    type: "expense" | "income"; // Added type
+    amount: number;
+    categoryId: string;
+    date: string; // ISO string
+    memo: string;
+    receiptImage?: string; // Base64 string (compressed)
+}
+
+export interface Budget {
+    familyId: string;
+    month: string; // YYYY-MM
+    totalBudget: number;
+    categoryBudgets: Record<string, number>; // categoryId -> amount
+}
+
+export interface LifeEvent {
+    id: string;
+    familyId: string;
+    title: string;
+    amount: number;
+    dueDate: string;
+    type: string;
+}
+
+interface AppState {
+    currentUser: User | null;
+    users: User[];
+    categories: Category[];
+    expenses: Expense[];
+    budgets: Budget[];
+    events: LifeEvent[];
+    isPro: boolean; // Monetization toggle
+    viewMode: "personal" | "shared"; // Couple Finance toggle
+
+    // Actions
+    addExpense: (expense: Omit<Expense, "id" | "userId">) => void;
+    removeExpense: (id: string) => void;
+    setBudget: (budget: Budget) => void;
+    togglePro: () => void;
+    toggleViewMode: (mode: "personal" | "shared") => void;
+    switchUser: (userId: string) => void;
+    updateUserStyle: (userId: string, style: NaggingStyle) => void; // New action
+    resetData: () => void;
+}
+
+// --- Mock Data ---
+const INITIAL_USERS: User[] = [
+    { id: "u1", name: "宏 (Hiroshi)", email: "hiroshi@demo.com", familyId: "f1", role: "owner", naggingStyle: "friendly" },
+    { id: "u2", name: "由紀 (Yuki)", email: "yuki@demo.com", familyId: "f1", role: "member", naggingStyle: "strict" },
+];
+
+const INITIAL_CATEGORIES: Category[] = [
+    // Expenses
+    { id: "c1", name: "食費", icon: "🍔", color: "orange", type: "expense" },
+    { id: "c2", name: "交通費", icon: "電車", color: "blue", type: "expense" },
+    { id: "c3", name: "住まい", icon: "🏠", color: "grape", type: "expense" },
+    { id: "c4", name: "娯楽", icon: "🎮", color: "violet", type: "expense" },
+    { id: "c5", name: "光熱費", icon: "💡", color: "yellow", type: "expense" },
+    { id: "c6", name: "買い物", icon: "🛍️", color: "pink", type: "expense" },
+    // Income
+    { id: "i1", name: "給料", icon: "💰", color: "teal", type: "income" },
+    { id: "i2", name: "ボーナス", icon: "💎", color: "cyan", type: "income" },
+    { id: "i3", name: "副業", icon: "💻", color: "indigo", type: "income" },
+    { id: "i4", name: "その他", icon: "💵", color: "gray", type: "income" },
+];
+
+// --- Store ---
+export const useStore = create<AppState>()(
+    persist(
+        (set, get) => ({
+            currentUser: INITIAL_USERS[0],
+            users: INITIAL_USERS,
+            categories: INITIAL_CATEGORIES,
+            expenses: [],
+            budgets: [],
+            events: [],
+            isPro: false,
+            viewMode: "shared",
+
+            addExpense: (data) => {
+                const { currentUser } = get();
+                if (!currentUser) return;
+                const newExpense: Expense = {
+                    id: uuidv4(),
+                    userId: currentUser.id,
+                    ...data,
+                };
+                set((state) => ({ expenses: [newExpense, ...state.expenses] }));
+            },
+
+            removeExpense: (id) =>
+                set((state) => ({
+                    expenses: state.expenses.filter((e) => e.id !== id),
+                })),
+
+            setBudget: (newBudget) => {
+                set((state) => {
+                    const existingIndex = state.budgets.findIndex(
+                        (b) => b.familyId === newBudget.familyId && b.month === newBudget.month
+                    );
+                    if (existingIndex >= 0) {
+                        const updated = [...state.budgets];
+                        updated[existingIndex] = newBudget;
+                        return { budgets: updated };
+                    }
+                    return { budgets: [...state.budgets, newBudget] };
+                });
+            },
+
+            togglePro: () => set((state) => ({ isPro: !state.isPro })),
+
+            toggleViewMode: (mode) => set({ viewMode: mode }),
+
+            switchUser: (userId) => {
+                const user = get().users.find((u) => u.id === userId);
+                if (user) set({ currentUser: user });
+            },
+
+            updateUserStyle: (userId, style) => {
+                set((state) => {
+                    const updatedUsers = state.users.map(u =>
+                        u.id === userId ? { ...u, naggingStyle: style } : u
+                    );
+                    const updatedCurrentUser = state.currentUser?.id === userId
+                        ? { ...state.currentUser, naggingStyle: style }
+                        : state.currentUser;
+
+                    return { users: updatedUsers, currentUser: updatedCurrentUser };
+                });
+            },
+
+            resetData: () =>
+                set({
+                    expenses: [],
+                    budgets: [],
+                    categories: INITIAL_CATEGORIES,
+                }),
+        }),
+        {
+            name: "pfm-storage",
+            storage: createJSONStorage(() => localStorage),
+            skipHydration: true,
+            partialize: (state) => ({
+                currentUser: state.currentUser,
+                users: state.users,
+                expenses: state.expenses,
+                budgets: state.budgets,
+                events: state.events,
+                isPro: state.isPro,
+                viewMode: state.viewMode,
+                // categories excluded to always use INITIAL_CATEGORIES from code
+            }),
+        }
+    )
+);
