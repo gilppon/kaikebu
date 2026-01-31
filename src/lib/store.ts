@@ -26,7 +26,8 @@ export interface Category {
 export interface Expense {
     id: string;
     userId: string;
-    type: "expense" | "income"; // Added type
+    type: "expense" | "income";
+    scope: "personal" | "shared"; // New: Personal pocket money or shared living expenses
     amount: number;
     categoryId: string;
     date: string; // ISO string
@@ -58,16 +59,19 @@ interface AppState {
     budgets: Budget[];
     events: LifeEvent[];
     isPro: boolean; // Monetization toggle
-    viewMode: "personal" | "shared"; // Couple Finance toggle
+    viewMode: "all" | "personal" | "shared"; // Scope filter
 
     // Actions
     addExpense: (expense: Omit<Expense, "id" | "userId">) => void;
+    updateExpense: (id: string, updates: Partial<Expense>) => void;
     removeExpense: (id: string) => void;
+    addCategory: (category: Omit<Category, 'id'>) => void;
+    removeCategory: (id: string) => void;
     setBudget: (budget: Budget) => void;
     togglePro: () => void;
-    toggleViewMode: (mode: "personal" | "shared") => void;
+    toggleViewMode: (mode: "all" | "personal" | "shared") => void;
     switchUser: (userId: string) => void;
-    updateUserStyle: (userId: string, style: NaggingStyle) => void; // New action
+    updateUserStyle: (userId: string, style: NaggingStyle) => void;
     resetData: () => void;
 }
 
@@ -103,7 +107,7 @@ export const useStore = create<AppState>()(
             budgets: [],
             events: [],
             isPro: false,
-            viewMode: "shared",
+            viewMode: "all",
 
             addExpense: (data) => {
                 const { currentUser } = get();
@@ -116,9 +120,30 @@ export const useStore = create<AppState>()(
                 set((state) => ({ expenses: [newExpense, ...state.expenses] }));
             },
 
+            updateExpense: (id, updates) => {
+                set((state) => ({
+                    expenses: state.expenses.map((e) =>
+                        e.id === id ? { ...e, ...updates } : e
+                    ),
+                }));
+            },
+
             removeExpense: (id) =>
                 set((state) => ({
                     expenses: state.expenses.filter((e) => e.id !== id),
+                })),
+
+            addCategory: (data) => {
+                const newCategory: Category = {
+                    id: uuidv4(),
+                    ...data,
+                };
+                set((state) => ({ categories: [...state.categories, newCategory] }));
+            },
+
+            removeCategory: (id) =>
+                set((state) => ({
+                    categories: state.categories.filter((c) => c.id !== id),
                 })),
 
             setBudget: (newBudget) => {
@@ -171,12 +196,12 @@ export const useStore = create<AppState>()(
             partialize: (state) => ({
                 currentUser: state.currentUser,
                 users: state.users,
+                categories: state.categories, // Now persisted
                 expenses: state.expenses,
                 budgets: state.budgets,
                 events: state.events,
                 isPro: state.isPro,
                 viewMode: state.viewMode,
-                // categories excluded to always use INITIAL_CATEGORIES from code
             }),
         }
     )

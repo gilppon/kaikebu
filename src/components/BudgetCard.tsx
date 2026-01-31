@@ -24,7 +24,8 @@ export default function BudgetCard() {
             .filter(e => {
                 const isMonthMatch = dayjs(e.date).format("YYYY-MM") === currentMonth;
                 if (!isMonthMatch) return false;
-                if (viewMode === 'personal' && e.userId !== currentUser?.id) return false;
+                if (viewMode === 'personal' && e.scope !== 'personal') return false;
+                if (viewMode === 'shared' && e.scope !== 'shared') return false;
                 return e.type === 'expense' || !e.type; // Only expenses
             })
             .reduce((acc, curr) => acc + curr.amount, 0);

@@ -10,6 +10,8 @@ import BudgetCard from "@/components/BudgetCard";
 import RecentTransactions from "@/components/RecentTransactions";
 import PredictionCard from "@/components/PredictionCard";
 import QuickAddButtons from "@/components/QuickAddButtons";
+import CalendarCard from "@/components/CalendarCard";
+import CategoryChart from "@/components/CategoryChart";
 import Link from "next/link";
 import { motion } from "framer-motion";
 
@@ -60,10 +62,11 @@ export default function Dashboard() {
           <Group>
             <SegmentedControl
               value={viewMode}
-              onChange={(value) => toggleViewMode(value as "personal" | "shared")}
+              onChange={(value) => toggleViewMode(value as "all" | "personal" | "shared")}
               data={[
-                { label: '全員 (Shared)', value: 'shared' },
-                { label: '自分 (Personal)', value: 'personal' },
+                { label: '全員', value: 'all' },
+                { label: '個人', value: 'personal' },
+                { label: '共同', value: 'shared' },
               ]}
               radius="xl"
               size="sm"
@@ -111,6 +114,13 @@ export default function Dashboard() {
           </motion.div>
         </Grid.Col>
 
+        {/* Calendar View (Top Priority) */}
+        <Grid.Col span={12}>
+          <motion.div variants={itemVariants} initial="hidden" animate="visible" transition={{ delay: 0.05 }}>
+            <CalendarCard />
+          </motion.div>
+        </Grid.Col>
+
         {/* Bento Grid Layout */}
 
         {/* Large Block: Summary (Top Left) */}
@@ -130,6 +140,13 @@ export default function Dashboard() {
               <PredictionCard />
             </motion.div>
           </Stack>
+        </Grid.Col>
+
+        {/* Category Chart */}
+        <Grid.Col span={{ base: 12, sm: 6 }}>
+          <motion.div variants={itemVariants} initial="hidden" animate="visible" transition={{ delay: 0.18 }}>
+            <CategoryChart />
+          </motion.div>
         </Grid.Col>
 
         {/* Full Width Block: Transactions */}

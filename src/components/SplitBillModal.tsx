@@ -40,6 +40,7 @@ export default function SplitBillModal({ opened, onClose }: Props) {
             date: new Date().toISOString(),
             memo: `${values.memo} (割り勘: 総額 ¥${values.totalAmount.toLocaleString()})`,
             type: "expense",
+            scope: "shared", // Split bills are typically shared expenses
         });
 
         form.reset();

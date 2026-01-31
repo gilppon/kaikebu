@@ -28,6 +28,7 @@ export default function QuickAddButtons() {
             date: new Date().toISOString(),
             memo: `${item.label} (クイック追加)${typeof customAmount === 'number' && customAmount > 0 ? ' [金額指定]' : ''}`,
             type: "expense",
+            scope: "shared", // Default: Quick adds are shared expenses
         });
 
         if (typeof customAmount === 'number' && customAmount > 0) {

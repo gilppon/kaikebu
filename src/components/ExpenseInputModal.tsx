@@ -3,18 +3,21 @@
 import { Modal, Button, NumberInput, Select, Textarea, Group, FileButton, Image, Box, SegmentedControl } from "@mantine/core";
 import { DateInput } from "@mantine/dates";
 import { useForm } from "@mantine/form";
-import { useStore } from "@/lib/store";
-import { useState } from "react";
+import { useStore, Expense } from "@/lib/store";
+import { useState, useEffect } from "react";
 import dayjs from "dayjs";
 import { IconCamera } from "@tabler/icons-react";
+
+// ... imports
 
 interface Props {
     opened: boolean;
     onClose: () => void;
+    editingExpense?: any; // strict typing later
 }
 
-export default function ExpenseInputModal({ opened, onClose }: Props) {
-    const { categories, addExpense, currentUser } = useStore();
+export default function ExpenseInputModal({ opened, onClose, editingExpense }: Props) {
+    const { categories, addExpense, updateExpense, currentUser } = useStore();
 
     const form = useForm({
         initialValues: {
@@ -23,25 +26,58 @@ export default function ExpenseInputModal({ opened, onClose }: Props) {
             date: new Date(),
             memo: "",
         },
-        validate: {
-            amount: (value) => (value <= 0 ? "Amount must be greater than 0" : null),
-            categoryId: (value) => (!value ? "Select a category" : null),
-        },
+        // ...
     });
 
     const [receiptImage, setReceiptImage] = useState<string | null>(null);
     const [activeTab, setActiveTab] = useState<"expense" | "income">("expense");
+    const [scope, setScope] = useState<"personal" | "shared">("shared"); // New: personal vs shared
+
+    useEffect(() => {
+        if (opened) {
+            if (editingExpense) {
+                form.setValues({
+                    amount: editingExpense.amount,
+                    categoryId: editingExpense.categoryId,
+                    date: new Date(editingExpense.date),
+                    memo: editingExpense.memo || "",
+                });
+                setReceiptImage(editingExpense.receiptImage || null);
+                setActiveTab(editingExpense.type);
+                setScope(editingExpense.scope || "shared");
+            } else {
+                form.reset();
+                setReceiptImage(null);
+                setActiveTab("expense"); // Default
+                setScope("shared"); // Default
+            }
+        }
+    }, [opened, editingExpense]);
 
     const handleSubmit = (values: typeof form.values) => {
         if (!currentUser) return;
-        addExpense({
-            amount: values.amount,
-            categoryId: values.categoryId,
-            date: values.date.toISOString(),
-            memo: values.memo,
-            receiptImage: receiptImage || undefined,
-            type: activeTab,
-        });
+
+        if (editingExpense) {
+            updateExpense(editingExpense.id, {
+                amount: values.amount,
+                categoryId: values.categoryId,
+                date: values.date.toISOString(),
+                memo: values.memo,
+                receiptImage: receiptImage || undefined,
+                type: activeTab,
+                scope: scope,
+            });
+        } else {
+            addExpense({
+                amount: values.amount,
+                categoryId: values.categoryId,
+                date: values.date.toISOString(),
+                memo: values.memo,
+                receiptImage: receiptImage || undefined,
+                type: activeTab,
+                scope: scope,
+            });
+        }
         form.reset();
         setReceiptImage(null);
         onClose();
@@ -89,7 +125,7 @@ export default function ExpenseInputModal({ opened, onClose }: Props) {
         <Modal
             opened={opened}
             onClose={onClose}
-            title={activeTab === 'expense' ? "支出の追加" : "収入の追加"}
+            title={editingExpense ? "編集" : (activeTab === 'expense' ? "支出の追加" : "収入の追加")}
             centered
             styles={{
                 title: { color: "#1d1d1f", fontWeight: 700 }
@@ -104,8 +140,19 @@ export default function ExpenseInputModal({ opened, onClose }: Props) {
                         { label: '収入 (Income)', value: 'income' },
                     ]}
                     fullWidth
-                    mb="md"
+                    mb="sm"
                     color={activeTab === 'income' ? 'teal' : 'blue'}
+                />
+                <SegmentedControl
+                    value={scope}
+                    onChange={(val) => setScope(val as "personal" | "shared")}
+                    data={[
+                        { label: '個人 (Personal)', value: 'personal' },
+                        { label: '共同 (Shared)', value: 'shared' },
+                    ]}
+                    fullWidth
+                    mb="md"
+                    color={scope === 'personal' ? 'violet' : 'cyan'}
                 />
                 <NumberInput
                     label="金額"
