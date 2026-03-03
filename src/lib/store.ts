@@ -52,6 +52,15 @@ export interface LifeEvent {
     type: string;
 }
 
+export interface Subscription {
+    id: string;
+    userId: string;
+    name: string;
+    amount: number;
+    billingDay: number;
+    categoryId: string;
+}
+
 interface AppState {
     currentUser: User | null;
     users: User[];
@@ -59,6 +68,7 @@ interface AppState {
     expenses: Expense[];
     budgets: Budget[];
     events: LifeEvent[];
+    subscriptions: Subscription[];
     isPro: boolean; // Monetization toggle
     viewMode: "all" | "personal" | "shared"; // Scope filter
 
@@ -73,6 +83,10 @@ interface AppState {
     toggleViewMode: (mode: "all" | "personal" | "shared") => void;
     switchUser: (userId: string) => void;
     updateUserStyle: (userId: string, style: NaggingStyle) => void;
+    addSubscription: (sub: Omit<Subscription, "id" | "userId">) => void;
+    updateSubscription: (id: string, updates: Partial<Subscription>) => void;
+    removeSubscription: (id: string) => void;
+    getTotalSubscriptionsAmount: () => number;
     resetData: () => void;
 }
 
@@ -98,7 +112,7 @@ const INITIAL_CATEGORIES: Category[] = [
 ];
 
 // --- Store ---
-export const useStore = create<AppState>()(
+export const createStore = (initialState?: Partial<AppState>) => create<AppState>()(
     persist(
         (set, get) => ({
             currentUser: INITIAL_USERS[0],
@@ -107,8 +121,10 @@ export const useStore = create<AppState>()(
             expenses: [],
             budgets: [],
             events: [],
+            subscriptions: [],
             isPro: false,
             viewMode: "shared",
+            ...initialState,
 
             addExpense: (data) => {
                 const { currentUser, budgets, setBudget } = get();
@@ -202,10 +218,39 @@ export const useStore = create<AppState>()(
                 });
             },
 
+            addSubscription: (data) => {
+                const { currentUser } = get();
+                if (!currentUser) return;
+                const newSub: Subscription = {
+                    id: uuidv4(),
+                    userId: currentUser.id,
+                    ...data,
+                };
+                set((state) => ({ subscriptions: [...state.subscriptions, newSub] }));
+            },
+
+            updateSubscription: (id, updates) => {
+                set((state) => ({
+                    subscriptions: state.subscriptions.map((s) =>
+                        s.id === id ? { ...s, ...updates } : s
+                    ),
+                }));
+            },
+
+            removeSubscription: (id) =>
+                set((state) => ({
+                    subscriptions: state.subscriptions.filter((s) => s.id !== id),
+                })),
+
+            getTotalSubscriptionsAmount: () => {
+                return get().subscriptions.reduce((sum, sub) => sum + sub.amount, 0);
+            },
+
             resetData: () =>
                 set({
                     expenses: [],
                     budgets: [],
+                    subscriptions: [],
                     categories: INITIAL_CATEGORIES,
                 }),
         }),
@@ -220,9 +265,12 @@ export const useStore = create<AppState>()(
                 expenses: state.expenses,
                 budgets: state.budgets,
                 events: state.events,
+                subscriptions: state.subscriptions,
                 isPro: state.isPro,
                 viewMode: state.viewMode,
             }),
         }
     )
 );
+
+export const useStore = createStore();

@@ -7,12 +7,14 @@ import { useMemo } from "react";
 import { IconTrendingUp, IconAlertTriangle, IconCheck } from "@tabler/icons-react";
 
 export default function PredictionCard() {
-    const { expenses, budgets, currentUser, viewMode } = useStore();
+    const { expenses, budgets, currentUser, viewMode, getTotalSubscriptionsAmount } = useStore();
     const currentMonth = dayjs().format("YYYY-MM");
     const today = dayjs();
     const daysInMonth = today.daysInMonth();
     const currentDay = today.date();
     const remainingDays = daysInMonth - currentDay;
+
+    const totalSubscriptions = getTotalSubscriptionsAmount();
 
     // Calculate Total Spent
     const totalSpent = useMemo(() => {
@@ -35,7 +37,7 @@ export default function PredictionCard() {
 
     // Linear Projection Logic
     const dailyAverage = currentDay > 0 ? totalSpent / currentDay : 0;
-    const projectedTotal = totalSpent + (dailyAverage * remainingDays);
+    const projectedTotal = totalSpent + (dailyAverage * remainingDays) + totalSubscriptions;
     const projectedBalance = totalBudget - projectedTotal;
     const isDanger = projectedTotal > totalBudget;
 
@@ -88,6 +90,12 @@ export default function PredictionCard() {
                                 {projectedBalance >= 0 ? "+" : ""}{Math.round(projectedBalance).toLocaleString()}円
                             </Text>
                         </Group>
+
+                        {totalSubscriptions > 0 && (
+                            <Text size="xs" c="orange.6" fw={600} mt="xs">
+                                💡 固定費(고정 지출) {totalSubscriptions.toLocaleString()}円 が予測に含まれています。
+                            </Text>
+                        )}
 
                         {isDanger && daysUntilBroke !== null && daysUntilBroke > 0 && (
                             <Alert variant="light" color="red" title="警告" icon={<IconAlertTriangle size={16} />}>
